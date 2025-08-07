@@ -17,7 +17,7 @@ import (
 
 // RegisterParticipantHandler procesa la solicitud completa para registrar un nuevo participante.
 func RegisterParticipantHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Leer y procesar el DSL de entrada
+	// Leer y procesar el DSL de entrada
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "No se pudo leer el cuerpo de la solicitud")
@@ -25,7 +25,7 @@ func RegisterParticipantHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	input := string(body)
 
-	// 2. Pipeline del Compilador (Léxico, Sintáctico, Semántico)
+	// Pipeline del Compilador (Léxico, Sintáctico, Semántico)
 	l := lexer.New(input)
 	p := parser.New(l)
 	participantData, parsingErrors := p.ParseProgram()
@@ -41,14 +41,14 @@ func RegisterParticipantHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Poblar el modelo de Go con los datos validados
+	// Poblar el modelo de Go con los datos validados
 	participantModel, err := populateModel(participantData)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	// 4. Generar el CÓDIGO DE PARTICIPANTE único
+	// Generar el CÓDIGO DE PARTICIPANTE único
 	participantCode, err := services.GenerateParticipantCode(participantModel.Categoria)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "No se pudo generar el código de participante.")
@@ -57,7 +57,7 @@ func RegisterParticipantHandler(w http.ResponseWriter, r *http.Request) {
 	// Asignamos el código generado a nuestro modelo antes de guardarlo.
 	participantModel.ParticipantCode = participantCode
 
-	// 5. (Simulado) Subir archivos y actualizar rutas
+	// (Simulado) Subir archivos y actualizar rutas
 	if participantModel.InePath != "" {
 		driveInePath, _ := services.UploadFile(participantModel.InePath)
 		participantModel.InePath = driveInePath
@@ -67,7 +67,7 @@ func RegisterParticipantHandler(w http.ResponseWriter, r *http.Request) {
 		participantModel.ComprobantePagoPath = driveComprobantePath
 	}
 
-	// 6. Guardar el participante en la Base de Datos
+	// Guardar el participante en la Base de Datos
 	// El modelo ahora contiene el código de participante generado.
 	id, err := database.CreateParticipant(participantModel)
 	if err != nil {
@@ -81,13 +81,13 @@ func RegisterParticipantHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	participantModel.ID = id // Asignamos el ID autoincremental de la DB
 
-	// 7. Preparar la respuesta JSON final
+	// Preparar la respuesta JSON final
 	responsePayload := map[string]interface{}{
 		"message":     "Participante registrado exitosamente.",
 		"participant": participantModel, // El modelo completo con ID y Código de Participante
 	}
 
-	// 8. Generar el TOKEN JWT (para la seguridad de la API)
+	// Generar el TOKEN JWT (para la seguridad de la API)
 	jwtToken, err := services.GenerateToken(participantModel)
 	if err != nil {
 		log.Printf("ADVERTENCIA: No se pudo generar el token JWT: %v", err)
@@ -102,7 +102,7 @@ func RegisterParticipantHandler(w http.ResponseWriter, r *http.Request) {
 		responsePayload["email_warning"] = "El servicio de correo falló: " + err_email.Error()
 	}
 
-	// 10. Enviar la respuesta final completa al cliente
+	// Enviar la respuesta final completa al cliente
 	respondWithJSON(w, http.StatusCreated, responsePayload)
 }
 
