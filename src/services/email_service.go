@@ -8,7 +8,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-func SendConfirmationEmail(toEmail, participantName, token string) error {
+func SendConfirmationEmail(toEmail, participantName, participantCode string) error {
 	smtpHost := os.Getenv("SMTP_HOST")
 	smtpPortStr := os.Getenv("SMTP_PORT")
 	smtpUser := os.Getenv("SMTP_USER")
@@ -24,13 +24,16 @@ func SendConfirmationEmail(toEmail, participantName, token string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", smtpUser)
 	m.SetHeader("To", toEmail)
-	m.SetHeader("Subject", "¡Bienvenido a la Competencia Ciclista!")
+	m.SetHeader("Subject", "¡Registro Confirmado! Tu Código de Participante")
 
 	body := `
 		<h1>¡Hola, ` + participantName + `!</h1>
-		<p>Tu registro ha sido completado con éxito.</p>
-		<p>Este es tu token de confirmación. Guárdalo en un lugar seguro:</p>
-		<pre><code>` + token + `</code></pre>
+		<p>Tu registro en la Competencia Ciclista ha sido completado con éxito.</p>
+		<p>Tu código de participante oficial es:</p>
+		<div style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 10px 20px; font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0;">
+			` + participantCode + `
+		</div>
+		<p>Este es el código que necesitarás el día del evento. ¡Guárdalo en un lugar seguro!</p>
 		<p>¡Nos vemos en la carrera!</p>
 	`
 	m.SetBody("text/html", body)

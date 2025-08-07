@@ -1,6 +1,4 @@
-// Archivo: src/App.tsx (CORREGIDO)
-
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import './App.css';
 
 interface FormData {
@@ -74,7 +72,6 @@ function App() {
 
       const result = await response.json();
       
-      // Para depurar, siempre es bueno ver qué responde el servidor
       console.log("Respuesta del servidor:", result);
 
       if (!response.ok) {
@@ -83,16 +80,29 @@ function App() {
       
       setIsError(false);
       
-      // ==================================================================
-      // AQUÍ ESTÁ LA CORRECCIÓN CLAVE
-      // Verificamos que 'result' y 'result.participant' existan antes de usarlos.
+      // ==========================================================
+      // === SECCIÓN MODIFICADA PARA UN MENSAJE MÁS AMIGABLE ===
+      // ==========================================================
       if (result && result.participant) {
-        setServerMessage(`¡Registro exitoso! ID: ${result.participant.id}. Token: ${result.access_token}`);
+        // 1. Extraemos los datos del participante para que el código sea más limpio.
+        const participant = result.participant;
+
+        // 2. Construimos el nombre completo, manejando el apellido materno opcional.
+        const nameParts = [participant.nombre, participant.apellido_paterno];
+        if (participant.apellido_materno) {
+          nameParts.push(participant.apellido_materno);
+        }
+        const fullName = nameParts.join(' ');
+        
+        // 3. Creamos el mensaje de éxito final.
+        const successMessage = `¡Registro Exitoso!\n\nParticipante: ${fullName}\nCódigo de Registro: ${participant.participant_code}`;
+
+        // 4. Establecemos el mensaje de éxito.
+        setServerMessage(successMessage);
       } else {
-        // Si no vienen, mostramos un mensaje genérico de éxito.
+        // Mensaje de respaldo si la respuesta no tiene la estructura esperada.
         setServerMessage("¡Registro exitoso! Revisa tu correo para ver los detalles.");
       }
-      // ==================================================================
       
     } catch (error: any) {
       setIsError(true);
@@ -104,7 +114,6 @@ function App() {
 
   return (
     <div className="container">
-      {/* El JSX del formulario no cambia, así que se omite por brevedad */}
       <h1>Registro de Ciclistas</h1>
       <form onSubmit={handleSubmit}>
         <div className="form-grid">

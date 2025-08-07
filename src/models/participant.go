@@ -2,6 +2,7 @@ package models
 
 type Participant struct {
 	ID                  int64  `json:"id"`
+	ParticipantCode     string `json:"participant_code"`
 	Nombre              string `json:"nombre"`
 	ApellidoPaterno     string `json:"apellido_paterno"`
 	ApellidoMaterno     string `json:"apellido_materno,omitempty"`

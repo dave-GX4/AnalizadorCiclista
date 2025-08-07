@@ -20,11 +20,22 @@ func InitDB(dataSourceName string) error {
 	return DB.Ping()
 }
 
+func CountParticipants() (int64, error) {
+	var count int64
+	query := "SELECT COUNT(id) FROM participantes"
+	err := DB.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func CreateParticipant(p models.Participant) (int64, error) {
+	// Se añade 'participant_code' al query y a los valores.
 	query := `INSERT INTO participantes (
-		nombre, apellido_paterno, apellido_materno, email, sexo, categoria, 
+		participant_code, nombre, apellido_paterno, apellido_materno, email, sexo, categoria, 
 		pago_realizado, ine_path, comprobante_pago_path
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	stmt, err := DB.Prepare(query)
 	if err != nil {
@@ -33,10 +44,12 @@ func CreateParticipant(p models.Participant) (int64, error) {
 	defer stmt.Close()
 
 	res, err := stmt.Exec(
+		p.ParticipantCode, // <-- Se añade el nuevo valor aquí
 		p.Nombre, p.ApellidoPaterno, p.ApellidoMaterno, p.Email, p.Sexo, p.Categoria,
 		p.PagoRealizado, p.InePath, p.ComprobantePagoPath,
 	)
 	if err != nil {
+		// El error de "Duplicate entry" ahora podría ser por el email o por el participant_code
 		return 0, fmt.Errorf("error al ejecutar la consulta: %w", err)
 	}
 
